@@ -9,10 +9,19 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QSpinBox>
+#include <QMap>
 #include <QClipboard>
+#include <QVector>
 #include <windows.h>
 #include <QApplication>
 #include "nativeeventfilter.h"
+
+typedef struct keyStroke{
+	uint8_t keyboardChar;
+	bool shift;
+	bool ctrl;
+	bool alt;
+} KeyStroke;
 
 
 class MainWindow : public QMainWindow
@@ -30,6 +39,8 @@ public slots:
 
 
 private:
+	void printKeys(QString str);
+	void populateKeyMap();
 
 	NativeEventFilter * nef;
 	QGridLayout * guiLayout = new QGridLayout(nullptr);
@@ -44,9 +55,17 @@ private:
 	QLabel * auxInfoLabel = new QLabel("Info, wie z.B. 100;7d;14d");
 	QLineEdit * auxInfo = new QLineEdit(nullptr);
 
+	QLabel * useClipboardLabel = new QLabel("Methode");
+	QComboBox * useClipboardComboBox = new QComboBox(this);
 
 	const QString rentLine = "[arm-rent]";
 	const QString sellLine = "[arm-sell]";
+	const QVector<QChar> listOfCtrlAltWords = {'[', ']', '{', '}'};
+	QMap<QChar, KeyStroke> keyMap;
+
+
+
+	bool useClipboard;
 
 	QString firstLine;
 
