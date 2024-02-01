@@ -47,8 +47,10 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent){
 	delayLayout->addWidget(chatKeyDelay, 5, 0);
 	delayLayout->addWidget(chatKeyReturnDelayLabel, 6, 0);
 	delayLayout->addWidget(chatKeyReturnDelay, 7, 0);
-	delayLayout->addWidget(keyDelayLabel, 8, 0);
-	delayLayout->addWidget(keyDelay, 9, 0);
+	delayLayout->addWidget(pasteReleaseDelayLabel, 8, 0);
+	delayLayout->addWidget(pasteReleaseDelay, 9, 0);
+	delayLayout->addWidget(keyDelayLabel, 10, 0);
+	delayLayout->addWidget(keyDelay, 11, 0);
 
 	delayBox->setLayout(delayLayout);
 	delayBox->setTitle("Delay Constants");
@@ -72,6 +74,8 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent){
 	chatKeyDelay->setValue(50);
 	chatKeyReturnDelay->setMaximum(999);
 	chatKeyReturnDelay->setValue(10);
+	pasteReleaseDelay->setMaximum(999);
+	pasteReleaseDelay->setValue(50);
 	keyDelay->setMaximum(999);
 	keyDelay->setValue(5);
 
@@ -145,7 +149,7 @@ void MainWindow::printKeys(QString str){
 		ip.ki.dwFlags = 0x00;
 		SendInput(1, &ip, sizeof(INPUT));
 
-		Sleep(50);
+		Sleep(pasteReleaseDelay->value());
 
 		// Release the V
 		ip.ki.dwFlags = KEYEVENTF_KEYUP;
@@ -290,11 +294,11 @@ void MainWindow::keyPressed(int id){
 	printKeys(locationName->text());
 	Sleep(keyReturnDelay->value());
 	sendReturn();
-	Sleep(returnKeyDelay->value() * 2);
+	Sleep(returnKeyDelay->value());
 
 	//Pad the number strings with leading zeroes, so that for example motel-1 becomes motel-001
 	printKeys(currentGSName);
-	Sleep(keyReturnDelay->value() * 2);
+	Sleep(keyReturnDelay->value());
 	sendReturn();
 	Sleep(returnKeyDelay->value());
 
@@ -319,7 +323,6 @@ void MainWindow::keyPressed(int id){
 	SendInput(1, &ip, sizeof(INPUT));
 
 	if(setHotel){
-		//Sleep(100);
 		//Open Chat
 		openChat();
 		Sleep(chatKeyDelay->value());
@@ -329,7 +332,6 @@ void MainWindow::keyPressed(int id){
 	}
 
 	if(setInactivityReset){
-		//Sleep(100);
 		//Open Chat
 		openChat();
 		Sleep(chatKeyDelay->value());
@@ -339,7 +341,6 @@ void MainWindow::keyPressed(int id){
 	}
 
 	if(setAutoRestore){
-		//Sleep(100);
 		//Open Chat
 		openChat();
 		Sleep(chatKeyDelay->value());

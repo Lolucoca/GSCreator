@@ -85,6 +85,8 @@ private:
 	QSpinBox * chatKeyDelay = new QSpinBox(nullptr);
 	QLabel * chatKeyReturnDelayLabel = new QLabel("T(Key-Return) (Chat)");
 	QSpinBox * chatKeyReturnDelay = new QSpinBox(nullptr);
+	QLabel * pasteReleaseDelayLabel = new QLabel("T(Paste-Release)");
+	QSpinBox * pasteReleaseDelay = new QSpinBox(nullptr);
 	QLabel * keyDelayLabel = new QLabel("T(Key-Key)");
 	QSpinBox * keyDelay = new QSpinBox(nullptr);
 
