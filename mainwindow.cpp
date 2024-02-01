@@ -7,19 +7,51 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent){
 
 	firstLine = sellLine; //Default value
 	useClipboard = true;
+	setHotel = false;
+	setInactivityReset = false;
+	setAutoRestore = false;
 
-	guiLayout->addWidget(rentSellLabel, 0, 0);
-	guiLayout->addWidget(rentSellComboBox, 1, 0);
-	guiLayout->addWidget(locationLabel, 2, 0);
-	guiLayout->addWidget(locationName, 3, 0);
-	guiLayout->addWidget(gsLabel, 4, 0);
-	guiLayout->addWidget(gsName, 5, 0);
-	guiLayout->addWidget(startGSLabel, 6, 0);
-	guiLayout->addWidget(startGS, 7, 0);
-	guiLayout->addWidget(auxInfoLabel, 8, 0);
-	guiLayout->addWidget(auxInfo, 9, 0);
-	guiLayout->addWidget(useClipboardLabel, 10, 0);
-	guiLayout->addWidget(useClipboardComboBox, 11, 0);
+	guiLayout->addWidget(signBox, 0, 0, 2, 1);
+	guiLayout->addWidget(commandBox, 0, 1, 1, 1);
+	guiLayout->addWidget(delayBox, 1, 1, 1, 1);
+	guiLayout->addWidget(useClipboardLabel, 2, 0, 1, 2);
+	guiLayout->addWidget(useClipboardComboBox, 3, 0, 1, 2);
+
+	signLayout->addWidget(rentSellLabel, 0, 0);
+	signLayout->addWidget(rentSellComboBox, 1, 0);
+	signLayout->addWidget(locationLabel, 2, 0);
+	signLayout->addWidget(locationName, 3, 0);
+	signLayout->addWidget(gsLabel, 4, 0);
+	signLayout->addWidget(gsName, 5, 0);
+	signLayout->addWidget(startGSLabel, 6, 0);
+	signLayout->addWidget(startGS, 7, 0);
+	signLayout->addWidget(auxInfoLabel, 8, 0);
+	signLayout->addWidget(auxInfo, 9, 0);
+	signBox->setLayout(signLayout);
+	signBox->setTitle("Sign Data");
+
+	commandLayout->addWidget(hotelLabel, 0, 0);
+	commandLayout->addWidget(hotelCheckBox, 0, 1);
+	commandLayout->addWidget(inactivityResetLabel, 1, 0);
+	commandLayout->addWidget(inactivityResetCheckBox, 1, 1);
+	commandLayout->addWidget(autoRestoreLabel, 2, 0);
+	commandLayout->addWidget(autoRestoreCheckBox, 2, 1);
+	commandBox->setLayout(commandLayout);
+	commandBox->setTitle("Command Data");
+
+	delayLayout->addWidget(keyReturnDelayLabel, 0, 0);
+	delayLayout->addWidget(keyReturnDelay, 1, 0);
+	delayLayout->addWidget(returnKeyDelayLabel, 2, 0);
+	delayLayout->addWidget(returnKeyDelay, 3, 0);
+	delayLayout->addWidget(chatKeyDelayLabel, 4, 0);
+	delayLayout->addWidget(chatKeyDelay, 5, 0);
+	delayLayout->addWidget(chatKeyReturnDelayLabel, 6, 0);
+	delayLayout->addWidget(chatKeyReturnDelay, 7, 0);
+	delayLayout->addWidget(keyDelayLabel, 8, 0);
+	delayLayout->addWidget(keyDelay, 9, 0);
+
+	delayBox->setLayout(delayLayout);
+	delayBox->setTitle("Delay Constants");
 
 	rentSellComboBox->addItem("Verkaufen");
 	rentSellComboBox->addItem("Mieten");
@@ -32,6 +64,19 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent){
 	startGS->setValue(1);
 	startGS->setMaximum(999);
 
+	keyReturnDelay->setMaximum(999);
+	keyReturnDelay->setValue(30);
+	returnKeyDelay->setMaximum(999);
+	returnKeyDelay->setValue(30);
+	chatKeyDelay->setMaximum(999);
+	chatKeyDelay->setValue(50);
+	chatKeyReturnDelay->setMaximum(999);
+	chatKeyReturnDelay->setValue(10);
+	keyDelay->setMaximum(999);
+	keyDelay->setValue(5);
+
+
+
 	QWidget *window = new QWidget();
 	window->setLayout(guiLayout);
 	setCentralWidget(window);
@@ -43,6 +88,18 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent){
 
 	connect(useClipboardComboBox, &QComboBox::currentIndexChanged, [=](){
 		useClipboard = (bool) useClipboardComboBox->currentIndex(); //There are only two ways so we can use it as a bool
+	});
+
+	connect(hotelCheckBox, &QCheckBox::stateChanged, [=](){
+		setHotel = hotelCheckBox->isChecked();
+	});
+
+	connect(inactivityResetCheckBox, &QCheckBox::stateChanged, [=](){
+		setInactivityReset = inactivityResetCheckBox->isChecked();
+	});
+
+	connect(autoRestoreCheckBox, &QCheckBox::stateChanged, [=](){
+		setAutoRestore = autoRestoreCheckBox->isChecked();
 	});
 
 	populateKeyMap();
@@ -153,7 +210,7 @@ void MainWindow::printKeys(QString str){
 			ip.ki.dwFlags = 0x00;
 			SendInput(1, &ip, sizeof(INPUT));
 
-			Sleep(20);
+			Sleep(keyDelay->value());
 
 			// Release
 			ip.ki.dwFlags = KEYEVENTF_KEYUP;
@@ -183,7 +240,7 @@ void MainWindow::printKeys(QString str){
 	}
 }
 
-inline void sendReturn(){
+inline void MainWindow::sendReturn(){
 	INPUT ip;
 	ip.type = INPUT_KEYBOARD;
 	ip.ki.wScan = 0;
@@ -196,6 +253,24 @@ inline void sendReturn(){
 	SendInput(1, &ip, sizeof(INPUT));
 
 	ip.ki.wVk = VK_RETURN;
+	ip.ki.dwFlags = KEYEVENTF_KEYUP;
+	SendInput(1, &ip, sizeof(INPUT));
+}
+
+inline void MainWindow::openChat(){
+
+	INPUT ip;
+	ip.type = INPUT_KEYBOARD;
+	ip.ki.wScan = 0;
+	ip.ki.time = 0;
+	ip.ki.dwExtraInfo = 0;
+
+	//Open Chat
+	ip.ki.wVk = keyMap['T'].keyboardChar;
+	ip.ki.dwFlags = 0x00;
+	SendInput(1, &ip, sizeof(INPUT));
+
+	ip.ki.wVk = keyMap['T'].keyboardChar;
 	ip.ki.dwFlags = KEYEVENTF_KEYUP;
 	SendInput(1, &ip, sizeof(INPUT));
 }
@@ -204,28 +279,29 @@ void MainWindow::keyPressed(int id){
 
 
 	qDebug() << "MainWindow::keyPressed(): " << id;
+	QString currentGSName = gsName->text() + "-" + QStringLiteral("%1").arg(startGS->value(), 3, 10, QLatin1Char('0'));
+
 
 	printKeys(firstLine);
-	Sleep(50);
+	Sleep(keyReturnDelay->value());
 	sendReturn();
-	Sleep(50);
+	Sleep(returnKeyDelay->value());
 
 	printKeys(locationName->text());
-	Sleep(50);
+	Sleep(keyReturnDelay->value());
 	sendReturn();
-	Sleep(100);
+	Sleep(returnKeyDelay->value() * 2);
 
 	//Pad the number strings with leading zeroes, so that for example motel-1 becomes motel-001
-	printKeys(gsName->text() + "-" + QStringLiteral("%1").arg(startGS->value(), 3, 10, QLatin1Char('0')));
-	Sleep(100);
+	printKeys(currentGSName);
+	Sleep(keyReturnDelay->value() * 2);
 	sendReturn();
-	Sleep(50);
+	Sleep(returnKeyDelay->value());
 
 	printKeys(auxInfo->text());
-	startGS->setValue(startGS->value() + 1);
-	Sleep(50);
+	Sleep(keyReturnDelay->value());
 	sendReturn();
-	Sleep(50);
+	Sleep(returnKeyDelay->value());
 
 	INPUT ip;
 	ip.type = INPUT_KEYBOARD;
@@ -241,6 +317,39 @@ void MainWindow::keyPressed(int id){
 	ip.ki.wVk = VK_ESCAPE;
 	ip.ki.dwFlags = KEYEVENTF_KEYUP;
 	SendInput(1, &ip, sizeof(INPUT));
+
+	if(setHotel){
+		//Sleep(100);
+		//Open Chat
+		openChat();
+		Sleep(chatKeyDelay->value());
+		printKeys(hotelCommand + currentGSName + " true");
+		Sleep(chatKeyReturnDelay->value());
+		sendReturn();
+	}
+
+	if(setInactivityReset){
+		//Sleep(100);
+		//Open Chat
+		openChat();
+		Sleep(chatKeyDelay->value());
+		printKeys(inactivityResetCommand + currentGSName + " true");
+		Sleep(chatKeyReturnDelay->value());
+		sendReturn();
+	}
+
+	if(setAutoRestore){
+		//Sleep(100);
+		//Open Chat
+		openChat();
+		Sleep(chatKeyDelay->value());
+		printKeys(autoRestoreCommand + currentGSName + " true");
+		Sleep(chatKeyReturnDelay->value());
+		sendReturn();
+	}
+
+
+	startGS->setValue(startGS->value() + 1);
 }
 
 void MainWindow::setNativeEventFilter(NativeEventFilter * filter){
@@ -248,6 +357,8 @@ void MainWindow::setNativeEventFilter(NativeEventFilter * filter){
 }
 
 void MainWindow::populateKeyMap(){
+	keyMap.insert(' ', {' ', false, false, false});
+
 	keyMap.insert('A', {'A', true, false, false});
 	keyMap.insert('B', {'B', true, false, false});
 	keyMap.insert('C', {'C', true, false, false});
